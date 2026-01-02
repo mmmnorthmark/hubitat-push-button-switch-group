@@ -282,6 +282,10 @@ void updatePbsgStructure(Map parms) {
   //   Output
   //     null - Config is unhealthy or unchanged relative to CSM, see logs.
   //      Map - The new PBSG (as saved to STATE).
+  // Ensure STATE is initialized (may be null after hub restart before initialize() runs)
+  if (STATE[DID()] == null) {
+    STATE[DID()] = getEmptyPbsg()
+  }
   Map config = settings              // Insert Preference <k, v> pairs.
   if (parms.config) {
     config << parseJson(parms.config)  // Overlay provided <k, v> pairs.
