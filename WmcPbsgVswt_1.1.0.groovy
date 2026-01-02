@@ -13,7 +13,7 @@
 // implied.
 // ---------------------------------------------------------------------------------
 // The Groovy Linter generates NglParseError on Hubitat #include !!!
-#include Wmc.WmcPbsgUtilsLib_1.0.0  // Requires the following imports.
+#include Wmc.WmcPbsgUtilsLib_1.1.0  // Requires the following imports.
 import com.hubitat.app.ChildDeviceWrapper as ChildDevW
 import com.hubitat.app.DeviceWrapper as DevW
 import com.hubitat.app.InstalledAppWrapper as InstAppW
@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 metadata {
   definition(
-    name: 'VswWithToggle',
+    name: 'PBSG - Push Button',
     namespace: 'Wmc',
     author: 'Wesley M. Conner',
     description: 'This device is a sub-component of device Wmc.PBSG',
