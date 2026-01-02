@@ -206,6 +206,20 @@ Integer buttonNameToPushed(String button, ArrayList buttons) {
 
 // Externally-Exposed PBSG Commands
 
+void ensureStateInitialized() {
+  // Ensure STATE and QUEUE are initialized with proper data from preferences
+  // This handles the case where commands are called before initialize() runs
+  if (STATE[DID()] == null || STATE[DID()].buttonsList?.size() == 0) {
+    logInfo('ensureStateInitialized', 'STATE not initialized or empty, rebuilding from preferences')
+    STATE[DID()] = getEmptyPbsg()
+    updatePbsgStructure([ref: 'ensureStateInitialized'])
+  }
+  if (QUEUE[DID()] == null) {
+    QUEUE[DID()] = new SynchronousQueue<Map>(true)
+    runInMillis(100, 'commandProcessor', [:])
+  }
+}
+
 void config(String jsonPrefs, String ref = '') {
   // If the configuration change alters the PBSG structure:
   //   - Rebuild the PBSG to the new structure
@@ -213,12 +227,14 @@ void config(String jsonPrefs, String ref = '') {
   updatePbsgStructure(config: jsonPrefs, ref: ref)
 }
 
-void push(Integer buttonNumber, String ref = '') {
+void push(Number buttonNumber, String ref = '') {
   // Per Capability 'PushableButton'.
+  // Note: Hubitat passes BigDecimal from UI, so accept Number type
   if (buttonNumber) {
+    ensureStateInitialized()
     Map command = [
       name: 'Push',
-      arg: buttonNumber,
+      arg: buttonNumber.intValue(),
       ref: ref,
       version: STATE[DID()].version
     ]
@@ -230,6 +246,7 @@ void push(Integer buttonNumber, String ref = '') {
 
 void activate(String button, String ref = '') {
   if (button) {
+    ensureStateInitialized()
     Map command = [
       name: 'Activate',
       arg: button,
@@ -244,6 +261,7 @@ void activate(String button, String ref = '') {
 
 void deactivate(String button, String ref = '') {
   if (button) {
+    ensureStateInitialized()
     Map command = [
       name: 'Deactivate',
       arg: button,
@@ -259,10 +277,7 @@ void deactivate(String button, String ref = '') {
 void pushByName(String buttonName) {
   // Toggle a button by name (like push() but using name instead of number)
   if (buttonName) {
-    // Ensure STATE is initialized
-    if (STATE[DID()] == null) {
-      STATE[DID()] = getEmptyPbsg()
-    }
+    ensureStateInitialized()
     Integer buttonNumber = buttonNameToPushed(buttonName, STATE[DID()].buttonsList)
     if (buttonNumber) {
       push(buttonNumber, "pushByName(${buttonName})")
