@@ -12,7 +12,7 @@ A virtual *PushButtonSwitchGroup* (*PBSG*) device:
 ** An optional *default button* is activated if no other button is active.
 * Each button has a corresponding *PBSG - Push Button* child device.
 * The state of the PBSG and its Child devices is continuously reconciled.
-** PBSG methods include `activate(button)`, `deactivate(button)`, `push(buttonNumber)`, `activateByName(buttonName)`.
+** PBSG methods include `activate(button)`, `deactivate(button)`, `push(buttonNumber)`, `pushByName(buttonName)`.
 ** Child devices support `on()`, `off()` and `push()` | `toggle()`.
 
 == Installation

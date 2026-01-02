@@ -68,8 +68,8 @@ metadata {
       [ name: 'button', type: 'STRING', description: 'button to deactivate' ],
       [ name: 'ref', type: 'STRING', description: 'optional text for tracing' ]
     ]
-    command 'activateByName', [
-      [ name: 'buttonName', type: 'STRING', description: 'button name to toggle (like push but by name)' ]
+    command 'pushByName', [
+      [ name: 'buttonName', type: 'STRING', description: 'Toggle button by name (like push but using name instead of number)' ]
     ]
     // Attributes not implied by a Capability
     attribute 'jsonPbsg', 'string'
@@ -256,17 +256,21 @@ void deactivate(String button, String ref = '') {
   }
 }
 
-void activateByName(String buttonName) {
+void pushByName(String buttonName) {
   // Toggle a button by name (like push() but using name instead of number)
   if (buttonName) {
+    // Ensure STATE is initialized
+    if (STATE[DID()] == null) {
+      STATE[DID()] = getEmptyPbsg()
+    }
     Integer buttonNumber = buttonNameToPushed(buttonName, STATE[DID()].buttonsList)
     if (buttonNumber) {
-      push(buttonNumber, "activateByName(${buttonName})")
+      push(buttonNumber, "pushByName(${buttonName})")
     } else {
-      logError('activateByName', "Button '${buttonName}' not found in PBSG")
+      logError('pushByName', "Button '${buttonName}' not found in PBSG")
     }
   } else {
-    logError('activateByName', 'Called with buttonName=NULL')
+    logError('pushByName', 'Called with buttonName=NULL')
   }
 }
 
@@ -514,6 +518,11 @@ Map getEmptyPbsg() {
 }
 
 void enqueueCommand(Map command) {
+  // Ensure QUEUE is initialized
+  if (QUEUE[DID()] == null) {
+    QUEUE[DID()] = new SynchronousQueue<Map>(true)
+    runInMillis(100, 'commandProcessor', [:])
+  }
   logTrace('enqueueCommand', bMap(command))
   QUEUE[DID()].put(command)
 }
