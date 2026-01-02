@@ -12,10 +12,10 @@
  * implied.
  */
 
-// Wmc.WmcPbsgUtilsLib_1.1.0
+// Wmc.WmcPbsgUtilsLib_1.2.0
 //   - The imports below support library methods.
 //   - Expect a Groovy Linter 'NglParseError' per Hubitat #include.
-#include Wmc.WmcPbsgUtilsLib_1.1.0
+#include Wmc.WmcPbsgUtilsLib_1.2.0
 import com.hubitat.app.ChildDeviceWrapper as ChildDevW
 import com.hubitat.app.DeviceWrapper as DevW
 import com.hubitat.app.InstalledAppWrapper as InstAppW
@@ -58,15 +58,18 @@ metadata {
 
     // Commands not implied by a Capability
     command 'config', [
-      [ name: 'jsonPrefs', type: 'String', description: 'Map of prefs serialized as JSON']
+      [ name: 'jsonPrefs', type: 'STRING', description: 'Map of prefs serialized as JSON']
     ]
     command 'activate', [
-      [ name: 'button', type: 'text', description: 'button to activate' ],
-      [ name: 'ref', type: 'text', description: 'optional text for tracing' ]
+      [ name: 'button', type: 'STRING', description: 'button to activate' ],
+      [ name: 'ref', type: 'STRING', description: 'optional text for tracing' ]
     ]
     command 'deactivate', [
-      [ name: 'button', type: 'text', description: 'button to deactivate' ],
-      [ name: 'ref', type: 'text', description: 'optional text for tracing' ]
+      [ name: 'button', type: 'STRING', description: 'button to deactivate' ],
+      [ name: 'ref', type: 'STRING', description: 'optional text for tracing' ]
+    ]
+    command 'activateByName', [
+      [ name: 'buttonName', type: 'STRING', description: 'button name to toggle (like push but by name)' ]
     ]
     // Attributes not implied by a Capability
     attribute 'jsonPbsg', 'string'
@@ -74,7 +77,7 @@ metadata {
   }
   preferences {
     input( name: 'buttons',
-      title: "${b('Button Names')} (space delimited)",
+      title: "${b('Button Names')} (pipe delimited, e.g., Morning|Evening|Night)",
       type: 'text',
       required: true
     )
@@ -87,12 +90,6 @@ metadata {
       multiple: false,
       defaultValue: 'not_applicable',
       required: false
-    )
-    input( name: 'instType',
-      title: b('Type of PBSG'),
-      type: 'text',
-      defaultValue: 'pbsg',
-      required: true
     )
     input( name: 'logLevel',
       title: b('PBSG Log Threshold ≥'),
@@ -252,6 +249,20 @@ void deactivate(String button, String ref = '') {
   }
 }
 
+void activateByName(String buttonName) {
+  // Toggle a button by name (like push() but using name instead of number)
+  if (buttonName) {
+    Integer buttonNumber = buttonNameToPushed(buttonName, STATE[DID()].buttonsList)
+    if (buttonNumber) {
+      push(buttonNumber, "activateByName(${buttonName})")
+    } else {
+      logError('activateByName', "Button '${buttonName}' not found in PBSG")
+    }
+  } else {
+    logError('activateByName', 'Called with buttonName=NULL')
+  }
+}
+
 // Internal Methods
 
 void updatePbsgStructure(Map parms) {
@@ -265,7 +276,9 @@ void updatePbsgStructure(Map parms) {
   //     null - Config is unhealthy or unchanged relative to CSM, see logs.
   //      Map - The new PBSG (as saved to STATE).
   Map config = settings              // Insert Preference <k, v> pairs.
-  config << parseJson(parms.config)  // Overlay provided <k, v> pairs.
+  if (parms.config) {
+    config << parseJson(parms.config)  // Overlay provided <k, v> pairs.
+  }
   ArrayList issues = []
   ArrayList buttonsList = []
   if (config) {
@@ -286,8 +299,9 @@ void updatePbsgStructure(Map parms) {
     }
     // Reviewing PBSG Structural fields.
     Boolean healthyButtons = true
-    String markDirty = config?.buttons?.replaceAll(/[\W_&&[^_ ]]/, '▮')
-    buttonsList = config?.buttons?.tokenize(' ')
+    // Allow word chars, spaces, and underscores in button names; pipe is delimiter
+    String markDirty = config?.buttons?.replaceAll(/[^\w\s_|]/, '▮')
+    buttonsList = config?.buttons?.tokenize('|')?.collect { it.trim() }?.findAll { it }
     Integer buttonsCount = buttonsList?.size()
     if (config.buttons == null) {
       issues << "The setting ${b('buttons')} is null."
@@ -307,9 +321,9 @@ void updatePbsgStructure(Map parms) {
       ].join('<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')
       healthyButtons = false
     }
-    // Normalize settings.buttons (e.g., reduce excess whitespace)
+    // Normalize settings.buttons
     if (healthyButtons) {
-      device.updateSetting('buttons', buttonsList.join(' '))
+      device.updateSetting('buttons', buttonsList.join('|'))
     }
     if (config.dflt == null) {
       issues << "The setting ${b('dflt')} is null (expected 'not_applicable')"
@@ -319,9 +333,6 @@ void updatePbsgStructure(Map parms) {
         "The setting ${b('dflt')} (${config.dflt}) is not found among ",
         "buttons: ${bList(buttonsList)}"
       ].join('<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')
-    }
-    if (config.instType == null) {
-      issues << "The setting ${b('instType')} is null."
     }
   } else {
     issues << 'No Preferences/settings or parms.config map was found.'
@@ -336,9 +347,8 @@ void updatePbsgStructure(Map parms) {
     // Does the (healthy) configuration merits a PBSG rebuild?
     String dflt = (config.dflt == 'not_applicable') ? null : config.dflt
     Boolean structureAltered = (
-      config.buttonsList != STATE[DID()].buttonsList
+      buttonsList != STATE[DID()].buttonsList
       || dflt != STATE[DID()].dflt
-      || config.instType != STATE[DID()].instType
     )
     if (structureAltered) {
       // Having detected a healthy and altered structure begin a PBSG rebuild.
@@ -346,7 +356,6 @@ void updatePbsgStructure(Map parms) {
         version: timestampAsString(),
         buttonsList: buttonsList,
         dflt: dflt,
-        instType: 'pbsg',
         active: null,
         lifo: []
       ]
@@ -480,7 +489,6 @@ Map getEmptyPbsg() {
     version: timestampAsString(),
     buttonsList: [],
     dflt: null,
-    instType: 'pbsg',
     active: null,
     lifo: []
   ]

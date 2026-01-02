@@ -13,7 +13,7 @@
 // implied.
 // ---------------------------------------------------------------------------------
 // The Groovy Linter generates NglParseError on Hubitat #include !!!
-#include Wmc.WmcPbsgUtilsLib_1.1.0  // Requires the following imports.
+#include Wmc.WmcPbsgUtilsLib_1.2.0  // Requires the following imports.
 import com.hubitat.app.ChildDeviceWrapper as ChildDevW
 import com.hubitat.app.DeviceWrapper as DevW
 import com.hubitat.app.InstalledAppWrapper as InstAppW

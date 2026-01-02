@@ -17,7 +17,7 @@
  */
 
 library(
-  name: 'WmcPbsgUtilsLib_1.1.0',
+  name: 'WmcPbsgUtilsLib_1.2.0',
   namespace: 'Wmc',
   author: 'Wesley M. Conner',
   description: 'Utility functions for PBSG drivers',

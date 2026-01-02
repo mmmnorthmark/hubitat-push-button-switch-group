@@ -12,7 +12,7 @@ A virtual *PushButtonSwitchGroup* (*PBSG*) device:
 ** An optional *default button* is activated if no other button is active.
 * Each button has a corresponding *PBSG - Push Button* child device.
 * The state of the PBSG and its Child devices is continuously reconciled.
-** PBSG methods include `activate(button)`, `deactivate(button)`, `push(buttonNumber)`.
+** PBSG methods include `activate(button)`, `deactivate(button)`, `push(buttonNumber)`, `activateByName(buttonName)`.
 ** Child devices support `on()`, `off()` and `push()` | `toggle()`.
 
 == Installation
@@ -26,21 +26,21 @@ A virtual *PushButtonSwitchGroup* (*PBSG*) device:
 . In your Hubitat admin interface, navigate to *Drivers Code*
 . Click the *Libraries* tab
 . Click *New Library*
-. Copy and paste the contents of `WmcPbsgUtilsLib_1.1.0.groovy`
+. Copy and paste the contents of `WmcPbsgUtilsLib_1.2.0.groovy`
 . Click *Save*
 
 === Step 2: Install the Parent Driver
 
 . Navigate to *Drivers Code*
 . Click *New Driver*
-. Copy and paste the contents of `WmcPbsg_1.1.0.groovy`
+. Copy and paste the contents of `WmcPbsg_1.2.0.groovy`
 . Click *Save*
 
 === Step 3: Install the Child Driver
 
 . Navigate to *Drivers Code*
 . Click *New Driver*
-. Copy and paste the contents of `WmcPbsgVswt_1.1.0.groovy`
+. Copy and paste the contents of `WmcPbsgVswt_1.2.0.groovy`
 . Click *Save*
 
 === Step 4: Create a PBSG Device
@@ -51,7 +51,7 @@ A virtual *PushButtonSwitchGroup* (*PBSG*) device:
 . Select *PBSG - Push Button Switch Group* as the device type (namespace: Wmc)
 . Click *Save Device*
 . Configure the device preferences:
-** *Button Names*: Enter space-delimited button names (e.g., `morning evening night away`)
+** *Button Names*: Enter pipe-delimited button names (e.g., `Morning|Evening|Night|Away`)
 ** *Default Button*: Optionally select a button to activate when no other is active
 ** *Log Level*: Set desired logging threshold
 . Click *Save Preferences*
