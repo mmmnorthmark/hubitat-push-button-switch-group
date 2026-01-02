@@ -91,6 +91,13 @@ metadata {
       defaultValue: 'not_applicable',
       required: false
     )
+    input( name: 'stateDisplayMode',
+      title: b('State Display Mode'),
+      type: 'enum',
+      options: ['Button Name', 'On/Off'],
+      defaultValue: 'Button Name',
+      required: true
+    )
     input( name: 'logLevel',
       title: b('PBSG Log Threshold ≥'),
       type: 'enum',
@@ -142,7 +149,7 @@ void updated() {
   // Called when a human uses the Hubitat GUI's Device drilldown page to edit
   // preferences (aka settings) AND presses 'Save Preferences'.
   logTrace('updated', 'Attempting PBSG Rebuild from configuration data.')
-  updatePbsgStructure(parms: [ref: 'Invoked by updated()'])
+  updatePbsgStructure([ref: 'Invoked by updated()'])
 }
 
 String tr(String label, String pks, String vs) {
@@ -445,12 +452,16 @@ void pbsg_SaveState(Map parms) {
         descriptionText: ref
       )
       if (activeChanged) {
-        String activeDesc = "active: ${b(pbsg.active)}, ${summary}, ref: ${ref}"
+        // Determine active value based on stateDisplayMode preference
+        String activeValue = (settings.stateDisplayMode == 'On/Off')
+          ? (pbsg.active ? 'on' : 'off')
+          : pbsg.active
+        String activeDesc = "active: ${b(activeValue)}, ${summary}, ref: ${ref}"
         logTrace('pbsg_SaveState', "Updating active: ${activeDesc})")
         device.sendEvent(
           name: 'active',
           isStateChange: true,
-          value: pbsg.active,
+          value: activeValue,
           unit: '#',
           descriptionText: activeDesc
         )

@@ -53,10 +53,15 @@ A virtual *PushButtonSwitchGroup* (*PBSG*) device:
 . Configure the device preferences:
 ** *Button Names*: Enter pipe-delimited button names (e.g., `Morning|Evening|Night|Away`)
 ** *Default Button*: Optionally select a button to activate when no other is active
+** *State Display Mode*: Choose how the `active` attribute is displayed:
+*** *Button Name*: Shows the name of the currently active button
+*** *On/Off*: Shows "on" if any button is active, "off" if none
 ** *Log Level*: Set desired logging threshold
 . Click *Save Preferences*
 
 The PBSG will automatically create child *PBSG - Push Button* devices for each button.
+
+NOTE: The *Initialize* button is for hub restarts only. Child devices are created when you click *Save Preferences*.
 
 == PARKED
 
