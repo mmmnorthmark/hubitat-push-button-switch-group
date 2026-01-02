@@ -12,10 +12,10 @@
  * implied.
  */
 
-// Wmc.WmcUtilsLib_1.0.0
+// Wmc.WmcPbsgUtilsLib_1.0.0
 //   - The imports below support library methods.
 //   - Expect a Groovy Linter 'NglParseError' per Hubitat #include.
-#include Wmc.WmcUtilsLib_1.0.0
+#include Wmc.WmcPbsgUtilsLib_1.0.0
 import com.hubitat.app.ChildDeviceWrapper as ChildDevW
 import com.hubitat.app.DeviceWrapper as DevW
 import com.hubitat.app.InstalledAppWrapper as InstAppW
