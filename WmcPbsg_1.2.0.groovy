@@ -306,17 +306,21 @@ void updatePbsgStructure(Map parms) {
     }
     // Reviewing PBSG Structural fields.
     Boolean healthyButtons = true
-    // Allow word chars, spaces, and underscores in button names; pipe is delimiter
-    String markDirty = config?.buttons?.replaceAll(/[^\w\s_|]/, '▮')
-    buttonsList = config?.buttons?.tokenize('|')?.collect { it.trim() }?.findAll { it }
+    // Normalize curly quotes/apostrophes to straight versions
+    String normalizedButtons = config?.buttons
+      ?.replaceAll(/[''‚]/, "'")  // Curly single quotes → straight
+      ?.replaceAll(/[""„]/, '"')  // Curly double quotes → straight
+    // Allow Unicode letters, numbers, spaces, common punctuation; pipe is delimiter
+    String markDirty = normalizedButtons?.replaceAll(/[^\p{L}\p{N}\s_|'\-]/, '▮')
+    buttonsList = normalizedButtons?.tokenize('|')?.collect { it.trim() }?.findAll { it }
     Integer buttonsCount = buttonsList?.size()
     if (config.buttons == null) {
       issues << "The setting ${b('buttons')} is null."
       healthyButtons = false
-    } else if (config.buttons != markDirty) {
+    } else if (normalizedButtons != markDirty) {
       issues << [
         "The setting ${b('buttons')} has invalid characters:",
-        config.buttons,
+        normalizedButtons,
         "${markDirty} ('▮' denotes problematic characters)",
       ].join('<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')
       healthyButtons = false
